@@ -74,6 +74,13 @@ After downloading the signing key, compare the displayed fingerprint against the
 expected fingerprint from your organization's security policy before trusting
 packages from this source.
 
+If your team publishes a production repository, replace the `...-dev` project
+path with your production project path before running `apt update`.
+
+Get the expected signing-key fingerprint and the correct production repository
+path from your internal platform/security documentation (or your Antigravity
+repository administrators) before enabling this source on production systems.
+
 There are three ways to set up the IDE integration:
 
 #### 1. Automatic nudge (recommended)
