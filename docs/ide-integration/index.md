@@ -57,17 +57,22 @@ repository first, run this optional prerequisite:
 sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://us-central1-apt.pkg.dev/doc/repo-signing-key.gpg | \
   sudo gpg --dearmor --yes -o /etc/apt/keyrings/antigravity-repo-key.gpg
+sudo gpg --show-keys --fingerprint /etc/apt/keyrings/antigravity-repo-key.gpg
 echo "deb [signed-by=/etc/apt/keyrings/antigravity-repo-key.gpg] https://us-central1-apt.pkg.dev/projects/antigravity-auto-updater-dev/ antigravity-debian main" | \
   sudo tee /etc/apt/sources.list.d/antigravity.list > /dev/null
 sudo apt update
 ```
 
+The signing key URL above is the provider-published key endpoint for this APT
+host. Confirm it matches your organization's approved source of trust.
+
 The `antigravity-auto-updater-dev` endpoint is an Antigravity package source.
 Use your organization's approved Antigravity channel/repository for production
 environments.
 
-After downloading the signing key, verify its fingerprint according to your
-organization's security policy before trusting packages from this source.
+After downloading the signing key, compare the displayed fingerprint against the
+expected fingerprint from your organization's security policy before trusting
+packages from this source.
 
 There are three ways to set up the IDE integration:
 
