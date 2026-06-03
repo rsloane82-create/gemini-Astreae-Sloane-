@@ -1,4 +1,6 @@
 STEFAN_BOLTZMANN = 5.670374419e-8
+MINIMUM_EFFECTIVE_SHELL_THICKNESS_M = 0.2
+MINIMUM_SHELL_INTEGRITY_FACTOR = 0.2
 
 
 def conductive_heat_flow_w(
@@ -9,7 +11,8 @@ def conductive_heat_flow_w(
     thickness_m: float,
     integrity: float,
 ) -> float:
-    effective_thickness = max(0.2, thickness_m * max(0.2, integrity))
+    effective_integrity = max(MINIMUM_SHELL_INTEGRITY_FACTOR, integrity)
+    effective_thickness = max(MINIMUM_EFFECTIVE_SHELL_THICKNESS_M, thickness_m * effective_integrity)
     effective_conductivity = conductivity_w_mk * (1.0 + (1.0 - integrity))
     return effective_conductivity * area_m2 * (core_temp_k - shell_temp_k) / effective_thickness
 

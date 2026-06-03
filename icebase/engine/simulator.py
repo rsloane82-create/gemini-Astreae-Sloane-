@@ -9,6 +9,9 @@ from icebase.models.thermal import conductive_heat_flow_w, radiative_loss_w
 from icebase.telemetry.types import EnergyBalance, TelemetryFrame
 from icebase.validation import validate_config
 
+SOLAR_ABSORPTION_COEFFICIENT = 0.65
+DEGRADATION_TEMP_SCALE = 120_000.0
+
 
 @dataclass
 class SimulationResult:
@@ -30,7 +33,7 @@ def run_simulation(
     config: MissionConfig,
     *,
     steps: int = 720,
-    dt_s: float = 10.0,
+    dt_seconds: float = 10.0,
     initial_damage_rate: float = 1.5e-5,
 ) -> SimulationResult:
     validate_config(config)
@@ -45,7 +48,7 @@ def run_simulation(
     frames: list[TelemetryFrame] = []
 
     for step in range(steps):
-        time_s = step * dt_s
+        time_s = step * dt_seconds
         action = compute_action(
             config.control,
             core.temperature_k,
@@ -56,7 +59,7 @@ def run_simulation(
         core.output_w = action.core_output_w
 
         solar_flux_w_m2 = orbital_solar_flux(config.environment, time_s)
-        solar_gain_w = solar_flux_w_m2 * config.shell.area_m2 * 0.65
+        solar_gain_w = solar_flux_w_m2 * config.shell.area_m2 * SOLAR_ABSORPTION_COEFFICIENT
 
         conducted_w = conductive_heat_flow_w(
             core.temperature_k,
@@ -73,15 +76,18 @@ def run_simulation(
             config.shell.emissivity,
         )
 
-        core_net_j = (core.output_w - conducted_w) * dt_s
-        shell_net_j = (conducted_w + solar_gain_w - radiative_loss) * dt_s
+        core_net_j = (core.output_w - conducted_w) * dt_seconds
+        shell_net_j = (conducted_w + solar_gain_w - radiative_loss) * dt_seconds
 
         update_core_temperature(core, core_net_j, config.core.heat_capacity_j_per_k)
         shell.temperature_k += shell_net_j / config.shell.heat_capacity_j_per_k
 
-        degradation_bias = max(0.0, (core.temperature_k - config.control.target_core_temp_k) / 120_000.0)
-        apply_damage(shell, initial_damage_rate + degradation_bias, dt_s)
-        apply_repair(shell, action.repair_rate, dt_s)
+        temperature_degradation_rate = max(
+            0.0,
+            (core.temperature_k - config.control.target_core_temp_k) / DEGRADATION_TEMP_SCALE,
+        )
+        apply_damage(shell, initial_damage_rate + temperature_degradation_rate, dt_seconds)
+        apply_repair(shell, action.repair_rate, dt_seconds)
 
         available_heat = core.output_w + solar_gain_w
         retained_heat = max(0.0, available_heat - radiative_loss)

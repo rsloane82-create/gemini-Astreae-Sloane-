@@ -15,7 +15,14 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--scenario", default="baseline", choices=sorted(SCENARIOS.keys()))
     parser.add_argument("--steps", type=int, default=720)
-    parser.add_argument("--dt", type=float, default=10.0, help="Timestep in seconds")
+    parser.add_argument(
+        "--time-step",
+        "--dt",
+        dest="time_step_seconds",
+        type=float,
+        default=10.0,
+        help="Timestep in seconds",
+    )
     parser.add_argument("--json", type=Path, help="Write telemetry JSON array to this path")
     parser.add_argument("--jsonl", type=Path, help="Write telemetry JSON lines to this path")
     parser.add_argument("--stream", action="store_true", help="Print JSONL stream for service agents")
@@ -33,7 +40,7 @@ def main() -> None:
 
     if args.batch:
         configs = {name: factory() for name, factory in SCENARIOS.items()}
-        results = run_batch(configs, steps=args.steps, dt_s=args.dt)
+        results = run_batch(configs, steps=args.steps, dt_seconds=args.time_step_seconds)
         for name in sorted(results):
             print(f"\n== Scenario: {name} ==")
             print(summarize(results[name].frames))
@@ -41,10 +48,10 @@ def main() -> None:
 
     config = SCENARIOS[args.scenario]()
     if args.profile:
-        result, elapsed_s = profile_run(config, steps=args.steps, dt_s=args.dt)
+        result, elapsed_s = profile_run(config, steps=args.steps, dt_seconds=args.time_step_seconds)
         print(f"Profile: {elapsed_s:.6f}s for {args.steps} steps")
     else:
-        result = profile_run(config, steps=args.steps, dt_s=args.dt)[0]
+        result, _ = profile_run(config, steps=args.steps, dt_seconds=args.time_step_seconds)
 
     frames = result.frames
     print(summarize(frames))

@@ -33,7 +33,7 @@ Measurable goals:
 Run baseline simulation:
 
 ```bash
-python3 /tmp/workspace/rsloane82-create/gemini-Astreae-Sloane-/run_icebase.py --scenario baseline --steps 720 --dt 10
+python3 run_icebase.py --scenario baseline --steps 720 --time-step 10
 ```
 
 ## Progressive realism included

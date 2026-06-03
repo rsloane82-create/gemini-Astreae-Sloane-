@@ -11,5 +11,8 @@ def write_json(path: Path, frames: Iterable[TelemetryFrame]) -> None:
 
 
 def write_jsonl(path: Path, frames: Iterable[TelemetryFrame]) -> None:
-    lines = [json.dumps(frame.to_dict(), sort_keys=True) for frame in frames]
-    path.write_text("\n".join(lines), encoding="utf-8")
+    with path.open("w", encoding="utf-8") as output:
+        for index, frame in enumerate(frames):
+            if index:
+                output.write("\n")
+            output.write(json.dumps(frame.to_dict(), sort_keys=True))
